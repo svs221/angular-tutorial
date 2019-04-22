@@ -1,35 +1,29 @@
 /**
  *
  */
-var app = angular.module('groceryListApp', ['ngRoute']);
+var app = angular.module('groceryListApp', ["ngRoute"]);
 
 app.config(function($routeProvider){
-  $routeProvider
-
-    .when("/",{
-      templateUrl: "views/gList.html",
-      controller: "GroceryListItemsController"
-    })
-
-    .when("/addItem",{
-      templateUrl: "views/inputItem.html",
-      controller: "GroceryListItemsController"
-    })
-
-    .when("/addItem/:id",{
-      templateUrl: "views/inputItem.html",
-      controller: "GroceryListItemsController"
-    })
-
-    .otherwise({
-      redirectTo: "/"
-    });
-
-
+    $routeProvider
+        .when("/",{
+            templateUrl: "views/list.html",
+            controller: "HomeController"
+        })
+        .when("/addItem",{
+            templateUrl: "views/inputItem.html",
+            controller: "GroceryListItemsController"
+        })
+        .when('/addItem/edit/:id',{
+            templateUrl: 'views/inputItem.html',
+            controller: 'GroceryListItemsController'
+        })
+        .otherwise({
+            redirectTo: "/"
+        })
 });
 
 app.service("GroceryService", function(){
-  var groceryService = [];
+  var groceryService = {};
   groceryService.gItems =  [
         {id: 1, completed: true, itemName: 'milk', date: '2014-10-00'},
         {id: 2, completed: true, itemName: 'cookies', date: '2014-10-01'},
@@ -41,29 +35,70 @@ app.service("GroceryService", function(){
         {id: 8, completed: true, itemName: 'tortillas', date: '2014-10-04'}
     ];
 
-    groceryService.save = function(entry){
+  groceryService.findById = function(id){
+      for(var item in groceryService.gItems){
+          if(groceryService.gItems[item].id === id) {
+              // console.log(groceryService.groceryItems[item]);
+              return groceryService.gItems[item];
+          }
+      }
+  };
+
+
+      groceryService.getNewId = function(){
+
+          if(groceryService.newId){
+              groceryService.newId++;
+              return groceryService.newId;
+          }
+          else{
+              var maxId = _.max(groceryService.gItems, function(entry){
+                return entry.id;
+              })
+              groceryService.newId = maxId.id + 1;
+              return groceryService.newId;
+          }
+      };
+
+  groceryService.save = function(entry) {
+
+    var updated = groceryService.findById(entry.id);
+    if (updated) {
+      updated.completed = entry.completed;
+      updated.itemName = entry.itemName;
+      updated.date = entry.date;
+    }
+    else {
+      entry.id = groceryService.getNewId();
       groceryService.gItems.push(entry);
-    };
+    }
+  };
 
   return groceryService;
 
-
 });
 
-app.controller("HomeController", ["$scope", function($scope) {
+app.controller("HomeController", ["$scope", "GroceryService", function($scope, GroceryService) {
+
+    $scope.groceryItems = GroceryService.gItems;
     $scope.appTitle = "Grocery List";
+
 }]);
 
-app.controller("GroceryListItemsController", ["$scope", "$routeParams", "GroceryService", "$location", function($scope, $routeParams, GroceryService, $location){
-    $scope.groceryItems = GroceryService.gItems;
+app.controller("GroceryListItemsController", ["$scope", "$routeParams", "$location", "GroceryService", function($scope, $routeParams, $location, GroceryService){
 
-    $scope.groceryItem = { id:7, completed:true, itemName: "cheese", date: new Date() }
+    if(!$routeParams.id) {
+        $scope.groceryItem = {id: 0, completed: false, itemName: "", date: new Date()};
+    }
+    else{
+        $scope.groceryItem = _.clone(GroceryService.findById(parseInt($routeParams.id)));
+    }
 
     $scope.save = function(){
-      GroceryService.save($scope.groceryItem);
-      $location.path("/");
-    }
-    
+        GroceryService.save( $scope.groceryItem );
+        $location.path("/");
+    };
+
 }]);
 
 
@@ -73,24 +108,6 @@ app.controller("GroceryListItemsController", ["$scope", "$routeParams", "Grocery
         <span class="glyphicon glyphicon-unchecked"></span>
     </button>
     <span style="font-weight:bold">Item 1</span>
-    <button type="button" class="btn btn-sm btn-default pull-right">
-        <span class="glyphicon glyphicon-pencil"></span>
-    </button>
-</li>
-<li class="list-group-item text-center clearfix">
-    <button type="button" class="btn btn-sm btn-success pull-left">
-        <span class="glyphicon glyphicon-unchecked"></span>
-    </button>
-    <span style="font-weight:bold">Item 2</span>
-    <button type="button" class="btn btn-sm btn-default pull-right">
-        <span class="glyphicon glyphicon-pencil"></span>
-    </button>
-</li>
-<li class="list-group-item text-center clearfix">
-    <button type="button" class="btn btn-sm btn-success pull-left">
-        <span class="glyphicon glyphicon-unchecked"></span>
-    </button>
-    <span style="font-weight:bold">Item 3</span>
     <button type="button" class="btn btn-sm btn-default pull-right">
         <span class="glyphicon glyphicon-pencil"></span>
     </button>
