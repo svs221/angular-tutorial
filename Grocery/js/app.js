@@ -110,6 +110,12 @@ app.controller("GroceryListItemsController", ["$scope", "$routeParams", "$locati
 
 }]);
 
+app.directive("svsGroceryItem",function(){
+  return{
+      restrict: "E",
+      templateUrl: "views/item.html"
+  }
+});
 
 /*
 <li class="list-group-item text-center clearfix">
