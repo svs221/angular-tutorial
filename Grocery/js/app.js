@@ -79,6 +79,10 @@ app.service("GroceryService", function(){
     }
   };
 
+  groceryService.mark = function(entry){
+    entry.completed = !entry.completed;
+  }
+
   return groceryService;
 
 });
@@ -90,7 +94,11 @@ app.controller("HomeController", ["$scope", "GroceryService", function($scope, G
 
     $scope.removeItem = function(entry){
       GroceryService.removeItem(entry);
-  }
+  };
+
+    $scope.mark = function(entry){
+      GroceryService.mark(entry);
+    };
 
 }]);
 
@@ -116,15 +124,3 @@ app.directive("svsGroceryItem",function(){
       templateUrl: "views/item.html"
   }
 });
-
-/*
-<li class="list-group-item text-center clearfix">
-    <button type="button" class="btn btn-sm btn-success pull-left">
-        <span class="glyphicon glyphicon-unchecked"></span>
-    </button>
-    <span style="font-weight:bold">Item 1</span>
-    <button type="button" class="btn btn-sm btn-default pull-right">
-        <span class="glyphicon glyphicon-pencil"></span>
-    </button>
-</li>
-*/
