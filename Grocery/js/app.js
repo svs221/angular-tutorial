@@ -22,18 +22,22 @@ app.config(function($routeProvider){
         })
 });
 
-app.service("GroceryService", function(){
+app.service("GroceryService", function($http){
   var groceryService = {};
-  groceryService.gItems =  [
-        {id: 1, completed: true, itemName: 'milk', date: new Date("October 1, 2014 11:13:00")},
-        {id: 2, completed: true, itemName: 'cookies', date: new Date("October 1, 2014 11:13:00")},
-        {id: 3, completed: true, itemName: 'ice cream', date: new Date("October 1, 2014 11:13:00")},
-        {id: 4, completed: true, itemName: 'potatoes', date: new Date("October 2, 2014 11:13:00")},
-        {id: 5, completed: true, itemName: 'cereal', date: new Date("October 3, 2014 11:13:00")},
-        {id: 6, completed: true, itemName: 'bread', date: new Date("October 3, 2014 11:13:00")},
-        {id: 7, completed: true, itemName: 'eggs', date: new Date("October 4, 2014 11:13:00")},
-        {id: 8, completed: true, itemName: 'tortillas', date: new Date("October 5, 2014 11:13:00")}
-    ];
+
+      groceryService.gItems = [];
+
+      $http.get("data/server_data.json")
+        .then(function(response) {
+            groceryService.gItems = response.data;
+
+            for (var item in groceryService.gItems) {
+              groceryService.gItems[item].date = new Date(groceryService.gItems[item].date);
+            }
+          },
+          function(response) {
+            alert("Something went wrong!");
+          });
 
   groceryService.findById = function(id){
       for(var item in groceryService.gItems){
@@ -74,7 +78,14 @@ app.service("GroceryService", function(){
       updated.date = entry.date;
     }
     else {
-      entry.id = groceryService.getNewId();
+      $http.get("data/added_item.json")
+        .then(function(response) {
+            entry.id = response.data.newId;
+          },
+          function(response) {
+            alert("Something went wrong!");
+          });
+
       groceryService.gItems.push(entry);
     }
   };
@@ -99,6 +110,10 @@ app.controller("HomeController", ["$scope", "GroceryService", function($scope, G
     $scope.mark = function(entry){
       GroceryService.mark(entry);
     };
+
+    $scope.$watch( function(){ return GroceryService.gItems; }, function(groceryItems) {
+    $scope.groceryItems = groceryItems;
+  })
 
 }]);
 
